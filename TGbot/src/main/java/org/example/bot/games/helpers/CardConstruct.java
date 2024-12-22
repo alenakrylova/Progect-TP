@@ -23,6 +23,7 @@ public class CardConstruct {
         alrHave(map, i, cuurent);
     }
 
+
     @Override
     public String toString() {
         return value + suit;

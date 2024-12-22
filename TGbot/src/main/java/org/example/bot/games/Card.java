@@ -15,10 +15,10 @@ public class Card implements GameHandler {
     private int cardsLeft;
     private final Random random = new Random();
     private int cardstoAnsw;
-    private boolean isFinished;
+    public boolean isFinished;
     private int targetNumber; // Целевое число
-    private int currentSum; // Текущая сумма
-    private int movesLeft; // Число оставшихся ходов
+    public int currentSum; // Текущая сумма
+    public int movesLeft; // Число оставшихся ходов
     private HashMap<Integer, CardConstruct> cardMap;
 
 
@@ -30,11 +30,6 @@ public class Card implements GameHandler {
 
     @Override
     public void handleInput(long chatId, String input) {
-        if (input.equals("main_menu")) {
-            isFinished = true; // Завершаем текущую игру
-            telegramBotmain.sendMessage(chatId, "Вы вернулись в главное меню. Нажмите /start для выбора игры.");
-            return;
-        }
         if (input.equalsIgnoreCase("/help")) {
             telegramBotmain.sendMessage(chatId, "Цель игры: с помощью определенного числа ходов достичь целевого числа.\n" +
                     "Красные карты (♥, ♦) прибавляют значение, черные (♠, ♣) — вычитают.\n" +
@@ -58,8 +53,9 @@ public class Card implements GameHandler {
         }
         targetNumber = random.nextInt(16) + 15; // Число от 15 до 30
         currentSum = 0;
-        movesLeft = random.nextInt(6) + 3;
+        movesLeft = random.nextInt(3) + 3;
         cardsLeft = cardMap.size(); // Устанавливаем количество карт
+        isFinished = false;
     }
 
     // Метод для создания клавиатуры с картами
@@ -68,7 +64,6 @@ public class Card implements GameHandler {
 
         for (int i = 0; i < cardMap.size(); i++) {
             CardConstruct card = cardMap.get(i);
-            if (card == null) continue; // Пропускаем уже удаленные карты
 
             InlineKeyboardButton button = new InlineKeyboardButton();
             button.setText(card.toString()); // Отображаем значение и масть карты
@@ -104,6 +99,44 @@ public class Card implements GameHandler {
             telegramBotmain.execute(message);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void handleCardSelection(long chatId, int cardIndex) {
+        if (isFinished) return;
+
+
+        System.out.println("Выбрана карта: " + cardIndex + ", Текущая сумма: " + currentSum + ", Осталось ходов: " + movesLeft);
+
+        CardConstruct card = cardMap.get(cardIndex);
+        if (card == null) {
+            telegramBotmain.sendMessage(chatId, "Эта карта уже была выбрана. Пожалуйста, выберите другую.");
+            return;
+        }
+
+        // Удаляем карту из карты
+        cardMap.remove(cardIndex);
+
+        // Учитываем значение карты
+        if (card.isRed()) {
+            currentSum += card.getValue();
+        } else {
+            currentSum -= card.getValue();
+        }
+
+        movesLeft--;
+
+
+        // Проверяем состояние игры
+        if (currentSum == targetNumber && movesLeft == 0) {
+            isFinished = true;
+            telegramBotmain.sendMessage(chatId, "Поздравляем! Вы достигли числа " + targetNumber + " и победили!");
+        } else if (movesLeft == 0) {
+            isFinished = true;
+            telegramBotmain.sendMessage(chatId, "Игра окончена. Вы не достигли числа " + targetNumber + ". Ваш итог: " + currentSum);
+        } else {
+            telegramBotmain.sendMessage(chatId, "Текущая сумма: " + currentSum +
+                    ". Осталось ходов: " + movesLeft + ". Выберите следующую карту.");
         }
     }
 

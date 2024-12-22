@@ -27,6 +27,8 @@ public class TelegramBotmain extends TelegramLongPollingBot {
         return "7611929913:AAGbp0Eu-ZEiRnymqgbo-2uoPYfkQk1eePo";
     }
 
+    Card cardGame = new Card(this);
+
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -47,35 +49,21 @@ public class TelegramBotmain extends TelegramLongPollingBot {
 
             if (callbackData.equals("cardgame")) {
                 sendMessage(chatId, "Игра 'Карточная игра' началась!");
-                activeGames.put(chatId, new Card(this));
+                activeGames.put(chatId, cardGame);
                 activeGames.get(chatId).gameStarted(chatId);
             }
-        }
-    }
-
-    private void handleCallbackQuery(CallbackQuery callbackQuery) {
-        long chatId = callbackQuery.getMessage().getChatId();
-        String data = callbackQuery.getData();
-
-        if (data.equals("main_menu")) {
-            // Завершаем текущую игру
-            if (activeGames.containsKey(chatId)) {
-                activeGames.remove(chatId);
+            else if (callbackData.equals("main_menu")) {
+                sendMessage(chatId, "Вы вернулись в главное меню. Нажмите /start для выбора игры.");
+                Card car = new Card(this);
+                car.isFinished = true;
+                activeGames.clear();
+            } else if (callbackData.startsWith("card_")) {
+                int cardIndex = Integer.parseInt(callbackData.split("_")[1]);
+                cardGame.handleCardSelection(chatId, cardIndex);
             }
-            // Отправляем сообщение о возвращении в главное меню
-            sendMessage(chatId, "Вы вернулись в главное меню. Нажмите /start для выбора игры.");
-        } else if (activeGames.containsKey(chatId)) {
-            // Если игра активна, передаем управление ей
-            GameHandler game = activeGames.get(chatId);
-            game.handleInput(chatId, data);
-        }else {
-            sendMessage(chatId, "Неизвестная команда. Нажмите /start для начала.");
         }
     }
-
-
-
-
+    
     public void sendMessage(long chatId, String text) {
         try {
             execute(new SendMessage(String.valueOf(chatId), text));
