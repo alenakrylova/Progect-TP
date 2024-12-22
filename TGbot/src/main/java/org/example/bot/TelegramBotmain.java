@@ -28,6 +28,8 @@ public class TelegramBotmain extends TelegramLongPollingBot {
     }
 
     Card cardGame = new Card(this);
+    Handman handmanGame = new Handman(this);
+    Wordly wordlyGame = new Wordly(this);
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -51,15 +53,29 @@ public class TelegramBotmain extends TelegramLongPollingBot {
                 sendMessage(chatId, "Игра 'Карточная игра' началась!");
                 activeGames.put(chatId, cardGame);
                 activeGames.get(chatId).gameStarted(chatId);
-            }
-            else if (callbackData.equals("main_menu")) {
+            }else if (callbackData.equals("main_menu")) {
                 sendMessage(chatId, "Вы вернулись в главное меню. Нажмите /start для выбора игры.");
-                Card car = new Card(this);
-                car.isFinished = true;
+                cardGame.cardWorking=false;
                 activeGames.clear();
-            } else if (callbackData.startsWith("card_")) {
-                int cardIndex = Integer.parseInt(callbackData.split("_")[1]);
-                cardGame.handleCardSelection(chatId, cardIndex);
+            }
+            if (callbackData.equals("hangmangame")) {
+                sendMessage(chatId, "Игра 'Виселица' началась!");
+                activeGames.put(chatId, handmanGame);
+                activeGames.get(chatId).gameStarted(chatId);
+            }
+
+            if (callbackData.equals("wordlygame")) {
+                sendMessage(chatId, "Игра 'Вордли' началась!");
+                activeGames.put(chatId, wordlyGame);
+                activeGames.get(chatId).gameStarted(chatId);
+            }
+            else if (callbackData.startsWith("card_")) {
+                if(cardGame.cardWorking){
+                    int cardIndex = Integer.parseInt(callbackData.split("_")[1]);
+                    cardGame.handleCardSelection(chatId, cardIndex);
+                }else{
+                    sendMessage(chatId,"Карточная игра уже завершена, нажмите /start для возврата в гланое меню.");
+                }
             }
         }
     }
@@ -84,4 +100,5 @@ public class TelegramBotmain extends TelegramLongPollingBot {
         }
     }
     private final Map<Long, GameHandler> activeGames = new HashMap<>();
+
 }

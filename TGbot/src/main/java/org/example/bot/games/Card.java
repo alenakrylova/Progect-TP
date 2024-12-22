@@ -20,6 +20,7 @@ public class Card implements GameHandler {
     public int currentSum; // Текущая сумма
     public int movesLeft; // Число оставшихся ходов
     private HashMap<Integer, CardConstruct> cardMap;
+    public boolean cardWorking;
 
 
     public Card(TelegramBotmain telegramBotmain) {
@@ -56,6 +57,7 @@ public class Card implements GameHandler {
         movesLeft = random.nextInt(3) + 3;
         cardsLeft = cardMap.size(); // Устанавливаем количество карт
         isFinished = false;
+        cardWorking = true;
     }
 
     // Метод для создания клавиатуры с картами
